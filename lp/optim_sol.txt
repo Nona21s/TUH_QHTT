@@ -1,0 +1,5 @@
+Optimal solution
+Direction: MAX
+Objective value: 13.200000
+Variables: 1.8000, 0, 1.4000
+Fraction: 9/5, 0, 7/5
