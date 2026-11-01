@@ -22,3 +22,4 @@ Python scripts to solve optimization problems step by step, covering linear, int
 - Stationary points categorization
 - Projected gradient method
 - Karush-Kuhn-Tucker conditions (KKT)
+"# TUH_QHTT" 
