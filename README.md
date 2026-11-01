@@ -23,3 +23,4 @@ Python scripts to solve optimization problems step by step, covering linear, int
 - Projected gradient method
 - Karush-Kuhn-Tucker conditions (KKT)
 "# TUH_QHTT" 
+"# t-i-u-h-a" 
