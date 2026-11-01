@@ -1,91 +1,111 @@
-TUH_QHTT – TỐI ƯU HÓA VÀ QUY HOẠCH TOÁN HỌC
+# TỐI ƯU HÓA QUY HOẠCH TOÁN HỌC (MATHEMATICAL PROGRAMMING OPTIMIZATION)
 
-Ứng dụng hỗ trợ giải các bài toán tối ưu hóa và quy hoạch toán học, được xây dựng bằng Python. Dự án tập trung triển khai các phương pháp giải toán tối ưu, hỗ trợ tính toán và trình bày kết quả trực quan.
+## 1. Giới thiệu
 
-📌 Giới thiệu
+Dự án **Tối ưu hóa Quy hoạch toán học (QHTT)** được xây dựng nhằm nghiên cứu, triển khai và ứng dụng các thuật toán giải quyết bài toán tối ưu trong lĩnh vực Quy hoạch toán học.
 
-TUH_QHTT là dự án ứng dụng các kiến thức về tối ưu hóa toán học vào việc xây dựng chương trình giải quyết các bài toán thực tế.
+Hệ thống tập trung vào việc triển khai các phương pháp tối ưu hóa, hỗ trợ tính toán, tìm kiếm nghiệm và trình bày kết quả giải bài toán. Qua đó, dự án góp phần vận dụng kiến thức lý thuyết vào thực hành lập trình và giải quyết các bài toán tối ưu thực tế.
 
-Chương trình được phát triển nhằm:
+## 2. Nội dung triển khai
 
-Hỗ trợ giải các bài toán quy hoạch tuyến tính và phi tuyến.
-Triển khai các phương pháp tối ưu hóa khác nhau.
-Hỗ trợ tính toán, xử lý ma trận và các bài toán mạng.
-Giúp người học hiểu rõ hơn về nguyên lý hoạt động của các thuật toán tối ưu.
-🚀 Các chức năng chính
+Dự án được chia thành bốn nhóm nội dung chính:
 
-Dự án được chia thành các module chức năng:
+### 2.1. Quy hoạch tuyến tính (Linear Programming - LP)
 
-Module	Chức năng
-lp/	Giải bài toán quy hoạch tuyến tính
-ilp/	Giải bài toán quy hoạch nguyên
-network_lp/	Giải bài toán quy hoạch tuyến tính mạng
-nlp/	Giải bài toán quy hoạch phi tuyến
-matrix/	Hỗ trợ các phép toán và xử lý ma trận
-🛠️ Công nghệ sử dụng
-Ngôn ngữ: Python
-Thư viện: Các thư viện được khai báo trong requirements.txt
-Đóng gói ứng dụng: PyInstaller
-Quản lý mã nguồn: Git và GitHub
-📂 Cấu trúc dự án
-text
-TUH_QHTT/
+- Phương pháp đơn hình (Simplex Method).
+- Phương pháp Big-M.
+- Bài toán đối ngẫu (Dual Problem).
+- Phương pháp cắt Gomory (Gomory Cutting Plane).
+
+### 2.2. Quy hoạch nguyên (Integer Linear Programming - ILP)
+
+- Bài toán cái túi (Knapsack Problem).
+- Bài toán người du lịch (Traveling Salesman Problem - TSP).
+- Phương pháp nhánh và cận (Branch and Bound).
+
+### 2.3. Quy hoạch tuyến tính trên mạng (Network Linear Programming)
+
+- Bài toán luồng và thế (Flow and Potential).
+- Thuật toán tìm đường đi ngắn nhất Dijkstra.
+- Thuật toán luồng cực đại Ford-Fulkerson.
+
+### 2.4. Quy hoạch phi tuyến (Nonlinear Programming - NLP)
+
+- Điều kiện Karush-Kuhn-Tucker (KKT).
+- Phương pháp Frank-Wolfe.
+- Phương pháp Gradient chiếu (Projected Gradient).
+- Xác định và phân loại các điểm dừng.
+
+## 3. Công nghệ sử dụng
+
+| Công nghệ | Mục đích |
+|---|---|
+| Python | Ngôn ngữ lập trình chính |
+| Tkinter | Xây dựng giao diện đồ họa |
+| NumPy | Xử lý dữ liệu và ma trận |
+| SciPy | Tính toán khoa học và tối ưu hóa |
+| SymPy | Tính toán đại số ký hiệu |
+| mpmath | Tính toán số học chính xác cao |
+| Gurobi | Hỗ trợ giải các bài toán tối ưu |
+
+## 4. Cấu trúc dự án
+
+```text
+QHTT_TUH/
 │
-├── lp/                 # Quy hoạch tuyến tính
-├── ilp/                # Quy hoạch nguyên
-├── network_lp/         # Quy hoạch tuyến tính mạng
-├── nlp/                # Quy hoạch phi tuyến
-├── matrix/             # Xử lý ma trận
+├── ilp/                 # Quy hoạch nguyên
+│   ├── knapsack/
+│   └── tsp/
 │
-├── requirements.txt    # Danh sách thư viện
-├── README.md           # Tài liệu dự án
-├── .gitignore          # Các file không đưa lên Git
+├── lp/                  # Quy hoạch tuyến tính
 │
-└── ToiUuHoaQHTT.exe    # File chạy ứng dụng (nếu có)
+├── matrix/              # Giao diện và xử lý ma trận
+│   ├── GUI.py
+│   ├── big_m.py
+│   └── lp_bridge.py
+│
+├── network_lp/          # Quy hoạch tuyến tính trên mạng
+│
+├── nlp/                 # Quy hoạch phi tuyến
+│
+├── requirements.txt     # Danh sách thư viện
+└── README.md            # Tài liệu dự án
+```
 
-💻 Cài đặt và sử dụng
-1. Clone repository
-bash
-git clone https://github.com/Nona21s/TUH_QHTT.git
+## 5. Cài đặt và sử dụng
 
-2. Di chuyển vào thư mục dự án
-bash
-cd TUH_QHTT
+**Yêu cầu:** Python và các thư viện cần thiết được khai báo trong `requirements.txt`.
 
-3. Cài đặt các thư viện cần thiết
-bash
+Cài đặt thư viện:
+
+```bash
 pip install -r requirements.txt
+```
 
-4. Khởi chạy chương trình
+Khởi chạy chương trình giao diện:
 
-Chạy file Python chính của dự án bằng lệnh:
+```bash
+python matrix/GUI.py
+```
 
-bash
-python main.py
+Người dùng có thể nhập dữ liệu bài toán, lựa chọn dạng tối ưu và thực hiện tính toán thông qua giao diện chương trình.
 
+## 6. Mục tiêu dự án
 
-Lưu ý: Thay main.py bằng tên file khởi chạy thực tế nếu dự án sử dụng tên khác.
+- Nghiên cứu và vận dụng các phương pháp tối ưu hóa trong Quy hoạch toán học.
+- Xây dựng chương trình giải các dạng bài toán tối ưu bằng Python.
+- Phân chia và tổ chức mã nguồn theo từng nhóm thuật toán.
+- Hỗ trợ quá trình học tập, thực hành và kiểm chứng kết quả tính toán.
 
-📦 Chạy ứng dụng bằng file EXE
+## 7. Định hướng phát triển
 
-Nếu không muốn cài đặt Python, người dùng có thể sử dụng file thực thi ToiUuHoaQHTT.exe (nếu được cung cấp trong repository).
+- Hoàn thiện và mở rộng các thuật toán tối ưu hóa.
+- Cải thiện giao diện và khả năng tương tác với người dùng.
+- Bổ sung chức năng trực quan hóa quá trình giải.
+- Nâng cao khả năng xử lý dữ liệu và kiểm tra kết quả.
 
-Các bước thực hiện:
+---
 
-Tải repository về máy hoặc tải file EXE.
-Giải nén nếu tải dưới dạng ZIP.
-Mở file ToiUuHoaQHTT.exe.
-Sử dụng các chức năng của chương trình.
-🎯 Mục tiêu dự án
-
-Dự án được thực hiện với mục đích vận dụng kiến thức lý thuyết vào thực hành lập trình, tìm hiểu và triển khai các thuật toán tối ưu hóa, đồng thời xây dựng một công cụ hỗ trợ giải các bài toán quy hoạch toán học.
-
-👨‍💻 Tác giả
-
-Nona21s
-
-GitHub: https://github.com/Nona21s
-
-📄 License
-
-Dự án phục vụ mục đích học tập và nghiên cứu.
+**Lĩnh vực:** Quy hoạch toán học và Tối ưu hóa  
+**Ngôn ngữ lập trình:** Python  
+**Mục đích:** Học tập, nghiên cứu và thực hành.
