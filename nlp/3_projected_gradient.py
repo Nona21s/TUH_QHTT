@@ -16,9 +16,11 @@ def fmt_frac(val, limit_denom=1000):
         pass
     return f"{val:.4g}"
 
+
 def fmt_vec_frac(v):
     vals = [fmt_frac(x) for x in v]
     return f"({', '.join(vals)})"
+
 
 def fmt_mat_frac(M):
     if M.size == 0: return "[] (Empty)"
@@ -28,6 +30,7 @@ def fmt_mat_frac(M):
         r_str = ",".join([fmt_frac(x) for x in row])
         rows.append(f"[{r_str}]")
     return "\n   ".join(rows)
+
 
 def fmt_mat_inline(M):
     if M.size == 0: return "[]"
@@ -42,7 +45,7 @@ def analyze_convexity(f_sym, vars_sym):
     print("\n[CONVEXITY ANALYSIS]")
     hessian = [[sp.diff(f_sym, v1, v2) for v2 in vars_sym] for v1 in vars_sym]
     hessian_mat = sp.Matrix(hessian)
-    
+
     print(f"1. Hessian Matrix Calculation ∇²f:")
     for i in range(len(vars_sym)):
         row_str = ", ".join([str(hessian_mat[i, j]) for j in range(len(vars_sym))])
@@ -52,13 +55,13 @@ def analyze_convexity(f_sym, vars_sym):
         eigenvals = hessian_mat.eigenvals()
         evals_list = list(eigenvals.keys())
         evals_float = [float(e) for e in evals_list]
-        
+
         evals_str = ", ".join([fmt_frac(float(e)) for e in evals_list])
         print(f"2. Hessian Eigenvalues: {evals_str}")
-        
+
         is_convex = all(e >= -1e-9 for e in evals_float)
         is_concave = all(e <= 1e-9 for e in evals_float)
-        
+
         if is_convex and is_concave:
             msg = "convex and concave (linear)"
             nature = "convex_concave"
@@ -71,7 +74,7 @@ def analyze_convexity(f_sym, vars_sym):
         else:
             msg = "INDEFINITE (Mixed Eigenvalues)"
             nature = "indefinite"
-            
+
         print(f"3. Conclusion: The function f is {msg}.")
         return nature
     except:
@@ -86,18 +89,18 @@ def parse_pnl_linear(filename):
     except FileNotFoundError:
         print(f"Error: File '{filename}' not found.")
         sys.exit(1)
-    
+
     data = {}
     # default: min problem
-    is_max = False 
-    
+    is_max = False
+
     for line in lines:
         clean_line = line.strip().lower()
         if clean_line == 'max' or clean_line.startswith('max '):
             is_max = True
         elif clean_line == 'min' or clean_line.startswith('min '):
             is_max = False
-            
+
         if ':' in line:
             key, val = line.split(':', 1)
             data[key.strip()] = val.strip()
@@ -112,13 +115,13 @@ def parse_pnl_linear(filename):
     g_str = data.get('g', '')
     A = []
     b = []
-    
+
     if g_str:
         g_list = g_str.split(',')
         for g in g_list:
             if not g.strip(): continue
             raw_g = g.strip().replace('^', '**')
-            
+
             # handle standard inequalities to normalize to expression <= 0
             if '<=' in raw_g:
                 lhs, rhs = raw_g.split('<=')
@@ -133,8 +136,8 @@ def parse_pnl_linear(filename):
                 expr = sp.sympify(raw_g, locals=local_dict)
 
             coeffs = expr.as_coefficients_dict()
-            const = float(coeffs.get(1, 0)) 
-            
+            const = float(coeffs.get(1, 0))
+
             row = []
             for v in vars_sym:
                 row.append(float(expr.coeff(v)))
@@ -148,14 +151,14 @@ def parse_pnl_linear(filename):
             val = float(sp.sympify(x.strip()))
             x0_vals.append(val)
     x0 = np.array(x0_vals)
-    
+
     iters = int(float(data.get('step_size', '5')))
     return f_expr, np.array(A), np.array(b), x0, vars_sym, iters, is_max
 
 
 def search_exact_step(f_sym, vars_sym, xk, direction, max_step, is_max):
     t = sp.symbols('t')
-    
+
     xk_rat = []
     dk_rat = []
     for val in xk:
@@ -167,19 +170,19 @@ def search_exact_step(f_sym, vars_sym, xk, direction, max_step, is_max):
 
     print(f"      [6.1] Parametrization x(t) = x^k + t * d^k:")
     x_param_sym = []
-    
+
     for i, v in enumerate(vars_sym):
         start = fmt_frac(xk[i])
         slope = fmt_frac(direction[i])
-        
+
         expr_t_sym = xk_rat[i] + t * dk_rat[i]
         x_param_sym.append(expr_t_sym)
-        
+
         print(f"        {v}(t) = {start} + ({slope})t")
 
     phi_t = f_sym.subs(dict(zip(vars_sym, x_param_sym)))
     phi_t_simplified = sp.expand(phi_t)
-    
+
     print(f"      [6.2] Substitute into f(x) -> φ(t):")
     print(f"        φ(t) = {phi_t_simplified}")
 
@@ -187,11 +190,11 @@ def search_exact_step(f_sym, vars_sym, xk, direction, max_step, is_max):
     print(f"      [6.3] Derivative φ'(t):")
     print(f"        φ'(t) = {d_phi}")
     print(f"        Solve φ'(t) = 0")
-    
+
     sol = sp.solve(d_phi, t)
-    
+
     candidates = [0.0, max_step]
-    
+
     sol_candidates = []
     if sol:
         for s in sol:
@@ -202,26 +205,27 @@ def search_exact_step(f_sym, vars_sym, xk, direction, max_step, is_max):
                     print(f"            !! t* < 0 -> t = STEP = 1 !!")
                 sol_candidates.append(val_t)
                 candidates.append(val_t)
-            except: pass
+            except:
+                pass
     else:
         print(f"        -> No stationary points found (linear/monotonic φ).")
 
     candidates = sorted(list(set(candidates)))
-    
+
     best_t = 0.0
     best_val = -float('inf') if is_max else float('inf')
-    
+
     print(f"      [6.4] Evaluate candidates in [0, {fmt_frac(max_step)}]:")
-    
+
     for cand in candidates:
         status = "OK"
         if cand < -1e-9 or cand > max_step + 1e-9:
             status = "OUT OF BOUNDS (Discarded)"
-        
+
         cand_clamped = max(0.0, min(cand, max_step))
-        
+
         val = float(phi_t.subs(t, cand_clamped))
-        
+
         is_best = False
         if status == "OK":
             if is_max:
@@ -234,7 +238,7 @@ def search_exact_step(f_sym, vars_sym, xk, direction, max_step, is_max):
                     best_val = val
                     best_t = cand_clamped
                     is_best = True
-        
+
         mark = "(*)" if is_best else ""
         if status != "OK":
             print(f"        t={fmt_frac(cand)}: {status}")
@@ -247,7 +251,7 @@ def search_exact_step(f_sym, vars_sym, xk, direction, max_step, is_max):
 def projected_gradient(filename='pnl.txt'):
     f_sym, A, b, xk, vars_sym, file_iter, is_max = parse_pnl_linear(filename)
     n_vars = len(vars_sym)
-    
+
     prob_type = "MAXIMIZATION" if is_max else "MINIMIZATION"
 
     try:
@@ -262,21 +266,21 @@ def projected_gradient(filename='pnl.txt'):
 
     print(f"\nFunction ({prob_type}): {f_sym}")
     print(f"Start x^0: {fmt_vec_frac(xk)}")
-    
+
     convexity_status = analyze_convexity(f_sym, vars_sym)
     print("=" * 60)
-    
+
     grad_sym = [sp.diff(f_sym, v) for v in vars_sym]
-    
+
     k = 0
-    
+
     while k < max_iter:
-        print(f"\n>>> ITERATION {k+1}")
-        
+        print(f"\n>>> ITERATION {k + 1}")
+
         print(f"[1] ∇f(x^{k}):")
         grad_list = []
         sorted_vars_for_sub = sorted(zip(vars_sym, xk), key=lambda x: len(str(x[0])), reverse=True)
-        
+
         for i, expr in enumerate(grad_sym):
             val = float(expr.subs(dict(zip(vars_sym, xk))))
             grad_list.append(val)
@@ -284,10 +288,10 @@ def projected_gradient(filename='pnl.txt'):
             for v_sym, v_val in sorted_vars_for_sub:
                 subst_str = subst_str.replace(str(v_sym), f"({fmt_frac(v_val)})")
             print(f"    ∂f/∂{vars_sym[i]}: {expr} = {subst_str} = {fmt_frac(val)}")
-            
+
         grad_val = np.array(grad_list)
         print(f"    ∇f: {fmt_vec_frac(grad_val)}")
-        
+
         J = []
         print(f"[2] Identification of Active Constraints:")
         for i in range(len(b)):
@@ -310,8 +314,10 @@ def projected_gradient(filename='pnl.txt'):
 
         while True:
             print(f"    Active indices J: {J}")
-            if not J: M = np.array([])
-            else: M = A[J]
+            if not J:
+                M = np.array([])
+            else:
+                M = A[J]
             print(f"    Matrix M:")
             print(f"   {fmt_mat_frac(M)}")
 
@@ -323,8 +329,10 @@ def projected_gradient(filename='pnl.txt'):
             else:
                 MT = M.T
                 MMT = np.dot(M, MT)
-                try: MMT_inv = np.linalg.pinv(MMT)
-                except: print("Error inv(MMT)"); return
+                try:
+                    MMT_inv = np.linalg.pinv(MMT)
+                except:
+                    print("Error inv(MMT)"); return
 
                 print(f"    Intermediate Terms:")
                 print(f"      M^T = \n   {fmt_mat_frac(MT)}")
@@ -377,15 +385,20 @@ def projected_gradient(filename='pnl.txt'):
                 print(f"    u = -(MM^T)^-1 * M ∇f(x^k)")
                 print(f"    u: [{', '.join(u_str_parts)}]")
 
-                if np.all(u >= -1e-9):
-                    print("    All u >= 0. KKT conditions satisfied.")
+                # Bài max: điều kiện KKT là u <= 0, nên đổi dấu để dùng chung phép kiểm tra "u_chk >= 0"
+                u_chk = -u if is_max else u
+                dau_tot = "<= 0" if is_max else ">= 0"
+                dau_xau = "> 0" if is_max else "< 0"
+
+                if np.all(u_chk >= -1e-9):
+                    print(f"    All u {dau_tot}. KKT conditions satisfied.")
                     print(f"    STOP. x^{k} is a stationary point.")
                     return
                 else:
-                    min_u_idx = np.argmin(u)
+                    min_u_idx = np.argmin(u_chk)
                     constraint_idx_to_remove = J[min_u_idx]
                     val_remove = u[min_u_idx]
-                    print(f"    Found u_{constraint_idx_to_remove} = {fmt_frac(val_remove)} < 0.")
+                    print(f"    Found u_{constraint_idx_to_remove} = {fmt_frac(val_remove)} {dau_xau}.")
                     print(f"    -> REMOVING constraint g_{constraint_idx_to_remove}.")
                     J.pop(min_u_idx)
                     print("    -> Recalculating H...")
@@ -400,12 +413,12 @@ def projected_gradient(filename='pnl.txt'):
                     print(f"      {var_sym}(t) = {start_val} + t * ({slope_val})")
 
                 max_t = float('inf')
-                ad = np.dot(A, dk)       # (A * d)
-                b_ax = b - np.dot(A, xk) # (b - A * x)
+                ad = np.dot(A, dk)  # (A * d)
+                b_ax = b - np.dot(A, xk)  # (b - A * x)
                 has_limit = False
 
                 print(f"\n    Constraint Analysis (Substitute x(t) into g_i):")
-                
+
                 for i in range(len(b)):
                     row_str_parts = []
                     for j, v in enumerate(vars_sym):
@@ -417,58 +430,59 @@ def projected_gradient(filename='pnl.txt'):
                             term = f"{v}" if val_str == "1" else f"{val_str}*{v}"
                             row_str_parts.append(f"{prefix}{term}")
                     lhs_str = "".join(row_str_parts) if row_str_parts else "0"
-                    
-                    den = ad[i]    
-                    num = b_ax[i]    
-                    val_lhs_curr = np.dot(A[i], xk)  
+
+                    den = ad[i]
+                    num = b_ax[i]
+                    val_lhs_curr = np.dot(A[i], xk)
 
                     print(f"    [g_{i}] {lhs_str} <= {fmt_frac(b[i])}")
-                    
+
                     # A(x + td) <= b  =>  Ax + t(Ad) <= b
                     print(f"       Subst:  {fmt_frac(val_lhs_curr)} + t*({fmt_frac(den)}) <= {fmt_frac(b[i])}")
-                    
+
                     status_msg = ""
                     if abs(den) < 1e-9:
-                         status_msg = "       -> Slope 0 (Independent of t). Always True."
+                        status_msg = "       -> Slope 0 (Independent of t). Always True."
                     elif den > 0:
-                         # t * den <= num  ->  t <= num/den
-                         lim = num/den
-                         lim_str = fmt_frac(lim)
-                         status_msg = f"       -> {fmt_frac(den)}*t <= {fmt_frac(num)}  =>  t <= {lim_str}"
-                         if lim < max_t: max_t = lim; has_limit = True
-                    else: # den < 0
-                         # t * den <= num  ->  t >= num/den 
-                         lim = num/den
-                         lim_str = fmt_frac(lim)
-                         status_msg = f"       -> {fmt_frac(den)}*t <= {fmt_frac(num)}  =>  t >= {lim_str} (Lower bound, ignored)"
-                    
+                        # t * den <= num  ->  t <= num/den
+                        lim = num / den
+                        lim_str = fmt_frac(lim)
+                        status_msg = f"       -> {fmt_frac(den)}*t <= {fmt_frac(num)}  =>  t <= {lim_str}"
+                        if lim < max_t: max_t = lim; has_limit = True
+                    else:  # den < 0
+                        # t * den <= num  ->  t >= num/den
+                        lim = num / den
+                        lim_str = fmt_frac(lim)
+                        status_msg = f"       -> {fmt_frac(den)}*t <= {fmt_frac(num)}  =>  t >= {lim_str} (Lower bound, ignored)"
+
                     print(status_msg)
-                
+
                 max_t_str = "inf" if not has_limit else fmt_frac(max_t)
                 print(f"\n    -> max t: t^{k} = {max_t_str}")
 
                 calc_bound = max_t if has_limit else 100.0
                 print(f"[6] Exact Line Search on [0, {max_t_str}]:")
-                
+
                 tk = search_exact_step(f_sym, vars_sym, xk, dk, calc_bound, is_max)
                 if abs(tk - round(tk)) < 1e-9: tk = float(round(tk))
-                
+
                 print(f"    -> MAX MOVEMENT t^{k} = {fmt_frac(tk)}")
-                
+
                 xk_next = xk + tk * dk
-                print(f"[7] New point x^{k+1}:")
-                print(f"     x^{k+1} = x^{k} + t^{k}* d^{k}")
+                print(f"[7] New point x^{k + 1}:")
+                print(f"     x^{k + 1} = x^{k} + t^{k}* d^{k}")
                 coords = []
                 for i in range(n_vars):
                     term = f"{fmt_frac(xk[i])} + {fmt_frac(tk)}*({fmt_frac(dk[i])})"
                     res = fmt_frac(xk_next[i])
                     coords.append(f"{term} = {res}")
                 print(f"    {',    '.join(coords)}")
-                print(f"    x^{k+1} = {fmt_vec_frac(xk_next)}")
+                print(f"    x^{k + 1} = {fmt_vec_frac(xk_next)}")
                 print("-" * 60)
                 xk = xk_next
                 k += 1
                 break
+
 
 if __name__ == "__main__":
     projected_gradient()
