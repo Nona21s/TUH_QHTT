@@ -7,10 +7,11 @@ INPUT_FILE = "data.txt"
 OUTPUT_FILE = "sim_result.txt"
 
 def log(msg, to_file=True):
-    print(msg)
-    if to_file:
-        with open(OUTPUT_FILE, "a") as f:
-            f.write(msg + "\n")
+  print(msg)
+  if to_file:
+    # Thêm encoding="utf-8" vào đây để tránh lỗi UnicodeEncodeError
+    with open(OUTPUT_FILE, 'a', encoding='utf-8') as f:
+      f.write(msg + '\n')
 
 def format_fraction(val):
     if abs(val) < 1e-9: return "0"
@@ -260,7 +261,7 @@ def solve_step(c, x_curr, basis_ids, constraints, step_num=1):
     return x_new, new_basis, False
 
 if __name__ == "__main__":
-    with open(OUTPUT_FILE, "w") as f: f.write("--- REPORT --- \n")
+    with open(OUTPUT_FILE, "w",encoding="utf-8") as f: f.write("--- REPORT --- \n")
     c, x_curr, basis_ids, constraints = parse_input(INPUT_FILE)
     
     if c is not None:
