@@ -1,4 +1,3 @@
-
 from fractions import Fraction
 
 MAX_ITER = 200
@@ -153,7 +152,11 @@ def giai_big_m(c, A, signs, b, mode):
         st["lam"] = lam
         valid = [(lam[i], i) for i in range(m) if lam[i] is not None]
         if not valid:
-            status = "unbounded"
+            # còn biến giả dương trong cơ sở -> thực chất là VÔ NGHIỆM, không phải không bị chặn
+            if any(basis[i] in gia_idx and Y[i] != 0 for i in range(m)):
+                status = "infeasible"
+            else:
+                status = "unbounded"
             break
         leave = min(valid)[1]
         st["leave"] = leave
